@@ -13,11 +13,12 @@ export default class App extends React.Component {
     super(props)
     this.state = {
       tempTime: '00:00:00',
-      setTime: '00:00:00',
+      setTime: 0,
+      currTime: 0,
       hour: '00',
       min: '00',
       sec: '00',
-      timerActive: false
+      timerActive: false,
     }
   }
 
@@ -35,23 +36,83 @@ export default class App extends React.Component {
   }
 
   _startTimer() {
-    this.setState({
-      setTime: this.state.tempTime,
-      timerActive: true
-    }, () => {
-      console.log("Here")
-    })
+    let t = this._getTotalTime()
+    let { timerActive,setTime } = this.state
+    if (!timerActive) {
+      this.setState(
+        {
+          setTime: t,
+          currTime: t,
+          timerActive: true,
+        },
+        () => {
+          this.timerCall = setInterval(() => {
+            this._decrementTimer()
+          }, 1000)
+        }
+      )
+    } else {
+      clearInterval(this.timerCall)
+      this.setState({
+        timerActive: false,
+        currTime: setTime,
+        tempTime: this._secondsToHms(setTime)
+      })
+    }
+  }
+
+  _decrementTimer() {
+    let { setTime, currTime } = this.state
+    console.log('Time: ' + currTime)
+    if (currTime > 0) {
+      let ct = currTime - 1
+      const newTime = this._secondsToHms(ct)
+      this.setState(
+        {
+          currTime: ct,
+          tempTime: newTime,
+        }
+      )
+    } else {
+      this.setState({
+        currTime: setTime,
+        tempTime: this._secondsToHms(setTime)
+      })
+    }
+  }
+
+  _secondsToHms(d) {
+    d = Number(d)
+    let h = Math.floor(d / 3600)
+    let m = Math.floor((d % 3600) / 60)
+    let s = Math.floor((d % 3600) % 60)
+
+    return (
+      ('0' + h).slice(-2) +
+      ':' +
+      ('0' + m).slice(-2) +
+      ':' +
+      ('0' + s).slice(-2)
+    )
+  }
+
+  _getTotalTime() {
+    let { hour, min, sec } = this.state
+    return Number(hour) * 3600 + Number(min) * 60 + Number(sec)
   }
 
   _hourInc() {
     let h = Number(this.state.hour)
     console.log(h)
     h++
-    let s = ("0" + h).slice(-2)
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      hour: s
-    }, () => this.setText())
+    this.setState(
+      {
+        hour: s,
+      },
+      () => this.setText()
+    )
   }
 
   _hourDec() {
@@ -60,27 +121,33 @@ export default class App extends React.Component {
     if (h != 0) {
       h--
     }
-    let s = ("0" + h).slice(-2)
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      hour: s
-    }, () => this.setText())
+    this.setState(
+      {
+        hour: s,
+      },
+      () => this.setText()
+    )
   }
 
   _minInc() {
     let h = Number(this.state.min)
     console.log(h)
-    if(h == 59){
+    if (h == 59) {
       h = 0
-    }else {
+    } else {
       h++
     }
-    
-    let s = ("0" + h).slice(-2)
+
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      min: s
-    }, () => this.setText())
+    this.setState(
+      {
+        min: s,
+      },
+      () => this.setText()
+    )
   }
 
   _minDec() {
@@ -91,27 +158,33 @@ export default class App extends React.Component {
     } else {
       h = 59
     }
-    let s = ("0" + h).slice(-2)
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      min: s
-    }, () => this.setText())
+    this.setState(
+      {
+        min: s,
+      },
+      () => this.setText()
+    )
   }
 
   _secInc() {
     let h = Number(this.state.sec)
     console.log(h)
-    if(h == 59){
+    if (h == 59) {
       h = 0
-    }else {
+    } else {
       h++
     }
-    
-    let s = ("0" + h).slice(-2)
+
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      sec: s
-    }, () => this.setText())
+    this.setState(
+      {
+        sec: s,
+      },
+      () => this.setText()
+    )
   }
 
   _secDec() {
@@ -122,11 +195,14 @@ export default class App extends React.Component {
     } else {
       h = 59
     }
-    let s = ("0" + h).slice(-2)
+    let s = ('0' + h).slice(-2)
     console.log('Formatted: ' + s)
-    this.setState({
-      sec: s
-    }, () => this.setText())
+    this.setState(
+      {
+        sec: s,
+      },
+      () => this.setText()
+    )
   }
 
   render() {
@@ -155,22 +231,42 @@ export default class App extends React.Component {
 
           {/* Handles Minutes */}
           <View style={styles.incrementContainer}>
-            <TouchableOpacity style={styles.buttonDec} onPress={()=>{this._minDec()}}>
+            <TouchableOpacity
+              style={styles.buttonDec}
+              onPress={() => {
+                this._minDec()
+              }}
+            >
               <Text style={styles.buttonText}>-</Text>
             </TouchableOpacity>
             <Text style={styles.counterText}>Min</Text>
-            <TouchableOpacity style={styles.buttonInc} onPress={()=>{this._minInc()}}>
+            <TouchableOpacity
+              style={styles.buttonInc}
+              onPress={() => {
+                this._minInc()
+              }}
+            >
               <Text style={styles.buttonText}>+</Text>
             </TouchableOpacity>
           </View>
 
           {/* Handles Seconds */}
           <View style={styles.incrementContainer}>
-            <TouchableOpacity style={styles.buttonDec} onPress={()=>{this._secDec()}}>
+            <TouchableOpacity
+              style={styles.buttonDec}
+              onPress={() => {
+                this._secDec()
+              }}
+            >
               <Text style={styles.buttonText}>-</Text>
             </TouchableOpacity>
             <Text style={styles.counterText}>Sec</Text>
-            <TouchableOpacity style={styles.buttonInc} onPress={()=>{this._secInc()}}>
+            <TouchableOpacity
+              style={styles.buttonInc}
+              onPress={() => {
+                this._secInc()
+              }}
+            >
               <Text style={styles.buttonText}>+</Text>
             </TouchableOpacity>
           </View>
@@ -185,7 +281,7 @@ export default class App extends React.Component {
           <Text style={styles.timerText}>{tempTime}</Text>
 
           <TouchableOpacity
-            onPress={() => this.setText()}
+            onPress={() => this._startTimer()}
             style={styles.button}
           >
             <Text style={styles.buttonText}>Start Timer</Text>
